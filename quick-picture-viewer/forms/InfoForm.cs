@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
 
@@ -12,6 +13,8 @@ namespace quick_picture_viewer
 		private Bitmap bitmap;
 		private string directoryName;
 		private string fileName;
+
+		static ImageFormat qoi = new ImageFormat(new Guid("{b96b3caa-0728-11d3-9d7b-0000f81ef32e}"));
 
 		public InfoForm(Bitmap bitmap, string directoryName, string fileName)
 		{
@@ -82,6 +85,7 @@ namespace quick_picture_viewer
 			else if (bitmap.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Bmp)) result = "BMP";
 			else if (bitmap.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Tiff)) result = "TIF";
 			else if (bitmap.RawFormat.Equals(System.Drawing.Imaging.ImageFormat.Icon)) result = "ICO";
+			else if (bitmap.RawFormat.Equals(qoi)) result = "QOI";
 
 			return result;
 		}

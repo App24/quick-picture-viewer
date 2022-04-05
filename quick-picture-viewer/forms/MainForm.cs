@@ -805,6 +805,9 @@ namespace quick_picture_viewer
 					case ".webp":
 						saveFileDialog1.FilterIndex = 7;
 						break;
+					case ".qoi":
+						saveFileDialog1.FilterIndex = 8;
+						break;
 				}
 			}
 
@@ -830,6 +833,9 @@ namespace quick_picture_viewer
 						break;
 					case 7:
 						ext = ".webp";
+						break;
+					case 8:
+						ext = ".qoi";
 						break;
 				}
 				SaveFile(saveFileDialog1.FileName, ext, true);
@@ -1245,7 +1251,7 @@ namespace quick_picture_viewer
 
 		private string[] GetCurrentFiles()
 		{
-			string[] exts = { ".png", ".jpg", ".jpeg", ".jpe", ".jfif", ".exif", ".gif", ".bmp", ".dib", ".rle", ".tiff", ".tif", ".ico", ".webp", ".svg", ".dds", ".tga", ".psd", ".cr2" };
+			string[] exts = { ".png", ".jpg", ".jpeg", ".jpe", ".jfif", ".exif", ".gif", ".bmp", ".dib", ".rle", ".tiff", ".tif", ".ico", ".webp", ".svg", ".dds", ".tga", ".psd", ".cr2", ".qoi" };
 			List<string> arlist = new List<string>();
 
 			if (currentFolder != null)
@@ -2102,7 +2108,7 @@ namespace quick_picture_viewer
 			setSlideshow(false);
 			openFileDialog1.Title = LangMan.Get("open-file");
 			openFileDialog1.Filter = LangMan.Get("all-image-formats") +
-				" (*.png, *.jpg, *.jpeg, *.jpe, *.jfif, *.exif, *.gif, *.bmp, *.dib, *.rle, *.tiff, *.tif, *.ico, *.webp, *.svg, *.dds, *.tga, *.psd, *.cr2) | *.png; *.jpg; *.jpeg; *.jpe; *.jfif; *.exif; *.gif; *.bmp, *.dib; *.rle; *.tiff; *.tif; *.ico; *.webp; *.svg; *.dds; *.tga; *.psd; *.cr2; |PNG (*.png)|*.png|JPG (*.jpg, *.jpeg, *.jpe, *.jfif, *.exif)|*.jpg; *.jpeg; *.jpe; *.jfif; *.exif|GIF (*.gif)|*.gif|BMP (*.bmp, *.dib, *.rle)|*.bmp; *.dib; *.rle|TIF (*.tiff, *.tif)|*.tiff; *.tif|ICO (*.ico)|*.ico|WEBP (*.webp)|*.webp|SVG (*.svg)|*.svg|DirectDraw Surface (*.dds)|*.dds|Targa (*.tga)|*.tga|Photoshop Document (*.psd)|*.psd|Canon Digital Camera Raw (*.cr2)|*.cr2|" +
+				" (*.png, *.jpg, *.jpeg, *.jpe, *.jfif, *.exif, *.gif, *.bmp, *.dib, *.rle, *.tiff, *.tif, *.ico, *.webp, *.svg, *.dds, *.tga, *.psd, *.cr2, *.qoi) | *.png; *.jpg; *.jpeg; *.jpe; *.jfif; *.exif; *.gif; *.bmp, *.dib; *.rle; *.tiff; *.tif; *.ico; *.webp; *.svg; *.dds; *.tga; *.psd; *.cr2; |PNG (*.png)|*.png|JPG (*.jpg, *.jpeg, *.jpe, *.jfif, *.exif)|*.jpg; *.jpeg; *.jpe; *.jfif; *.exif|GIF (*.gif)|*.gif|BMP (*.bmp, *.dib, *.rle)|*.bmp; *.dib; *.rle|TIF (*.tiff, *.tif)|*.tiff; *.tif|ICO (*.ico)|*.ico|WEBP (*.webp)|*.webp|SVG (*.svg)|*.svg|DirectDraw Surface (*.dds)|*.dds|Targa (*.tga)|*.tga|Photoshop Document (*.psd)|*.psd|Canon Digital Camera Raw (*.cr2)|*.cr2|Quite OK Image (*.qoi)|*.qoi|" +
 				LangMan.Get("all-files") + " (*.*)|*.*";
 
 			if (openFileDialog1.ShowDialog() == DialogResult.OK)
@@ -2454,6 +2460,7 @@ namespace quick_picture_viewer
 				case ".tif":
 				case ".ico":
 				case ".webp":
+				case ".qoi":
 					needSaveAs = false;
 					break;
 			}
@@ -2480,7 +2487,7 @@ namespace quick_picture_viewer
 				
 				using (MemoryStream memory = new MemoryStream())
 				{
-					using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+					using (FileStream fs = new FileStream(path, FileMode.Create, FileAccess.ReadWrite))
 					{
 						byte[] bytes;
 						switch (ext)
@@ -2519,6 +2526,11 @@ namespace quick_picture_viewer
 								break;
 							case ".ico":
 								IcoEngine.ConvertToIcon(bmpToSave, memory);
+								break;
+							case ".qoi":
+								QoiEngine.Save(bmpToSave, memory);
+								bytes = memory.ToArray();
+								fs.Write(bytes, 0, bytes.Length);
 								break;
 							case ".webp":
 								WebpWrapper.Save(bmpToSave, path);

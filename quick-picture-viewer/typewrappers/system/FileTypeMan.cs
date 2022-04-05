@@ -33,6 +33,9 @@ namespace quick_picture_viewer
 				case ".cr2":
 					tw = new Cr2Wrapper();
 					break;
+				case ".qoi":
+					tw = new QoiWrapper();
+					break;
 				case ".dds":
 				case ".tga":
 					tw = new DdsTgaWrapper();
