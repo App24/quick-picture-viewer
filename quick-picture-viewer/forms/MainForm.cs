@@ -8,6 +8,7 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Timers;
 using System.Windows.Forms;
 
@@ -837,12 +838,18 @@ namespace quick_picture_viewer
 					case 8:
 						ext = ".qoi";
 						break;
+					case 9:
+						ext = ".bin";
+						break;
 				}
-				SaveFile(saveFileDialog1.FileName, ext, true);
+				SaveFile(saveFileDialog1.FileName, ext, ext!=".bin");
 
-				setImageChanged(false);
-				CheckRecursiveFolder(saveFileDialog1.FileName);
-				OpenFile(saveFileDialog1.FileName, targetExtension: ext);
+				if (ext != ".bin")
+				{
+					setImageChanged(false);
+					CheckRecursiveFolder(saveFileDialog1.FileName);
+					OpenFile(saveFileDialog1.FileName, targetExtension: ext);
+                }
 			}
 			saveFileDialog1.Dispose();
 		}
@@ -2531,6 +2538,32 @@ namespace quick_picture_viewer
 								QoiEngine.Save(bmpToSave, memory);
 								bytes = memory.ToArray();
 								fs.Write(bytes, 0, bytes.Length);
+								break;
+							case ".bin":
+								Bitmap bitmap = bmpToSave;
+								BitmapData data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+
+								unsafe
+								{
+									int size = data.Stride * bitmap.Height;
+
+									byte[] arr = new byte[size];
+
+									int channels = bitmap.PixelFormat == PixelFormat.Format24bppRgb ? 3 : 4;
+
+									Marshal.Copy(data.Scan0, arr, 0, size);
+
+									for (int i = 0; i < size; i += channels)
+									{
+										byte temp = arr[i + 2];
+										arr[i + 2] = arr[i];
+										arr[i] = temp;
+									}
+
+									fs.Write(arr, 0, size);
+								}
+
+								bitmap.UnlockBits(data);
 								break;
 							case ".webp":
 								WebpWrapper.Save(bmpToSave, path);
