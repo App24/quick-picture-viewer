@@ -45,13 +45,12 @@ namespace quick_picture_viewer
             return buffer[index++] << 24 | buffer[index++] << 16 | buffer[index++] << 8 | buffer[index++] << 0;
         }
 
-        private static void WriteColor(byte[] buffer, ref int index, Color color, int channels)
+        private static void WriteColor(byte[] buffer, ref int index, Color color)
         {
             buffer[index++] = (byte)color.b;
             buffer[index++] = (byte)color.g;
             buffer[index++] = (byte)color.r;
-            if (channels == 4)
-                buffer[index++] = (byte)color.a;
+            buffer[index++] = (byte)color.a;
         }
 
         private static void InsertIntoSeenColors(Color[] seenColors, Color color)
@@ -94,7 +93,7 @@ namespace quick_picture_viewer
             byte channels = rawQoi[readIndex++];
             byte colorSpace = rawQoi[readIndex++];
 
-            int pixelBufferSize = width * height * channels;
+            int pixelBufferSize = width * height * 4;
 
             byte[] bytes = new byte[pixelBufferSize];
 
@@ -108,7 +107,7 @@ namespace quick_picture_viewer
                     previousColor.g = rawQoi[readIndex++];
                     previousColor.b = rawQoi[readIndex++];
 
-                    WriteColor(bytes, ref writeIndex, previousColor, channels);
+                    WriteColor(bytes, ref writeIndex, previousColor);
                     InsertIntoSeenColors(seenColors, previousColor);
 
                     continue;
@@ -121,7 +120,7 @@ namespace quick_picture_viewer
                     previousColor.b = rawQoi[readIndex++];
                     previousColor.a = rawQoi[readIndex++];
 
-                    WriteColor(bytes, ref writeIndex, previousColor, channels);
+                    WriteColor(bytes, ref writeIndex, previousColor);
                     InsertIntoSeenColors(seenColors, previousColor);
 
                     continue;
@@ -133,7 +132,7 @@ namespace quick_picture_viewer
 
                     for (int i = 0; i < runLength + 1; i++)
                     {
-                        WriteColor(bytes, ref writeIndex, previousColor, channels);
+                        WriteColor(bytes, ref writeIndex, previousColor);
                     }
 
                     continue;
@@ -144,7 +143,7 @@ namespace quick_picture_viewer
                     int index = currentByte & QOI_INDEX;
 
                     Color color = seenColors[index];
-                    WriteColor(bytes, ref writeIndex, color, channels);
+                    WriteColor(bytes, ref writeIndex, color);
                     previousColor = color;
                     continue;
                 }
@@ -159,7 +158,7 @@ namespace quick_picture_viewer
                     previousColor.g = (previousColor.g + dg) & 0xff;
                     previousColor.b = (previousColor.b + db) & 0xff;
 
-                    WriteColor(bytes, ref writeIndex, previousColor, channels);
+                    WriteColor(bytes, ref writeIndex, previousColor);
                     InsertIntoSeenColors(seenColors, previousColor);
 
                     continue;
@@ -179,7 +178,7 @@ namespace quick_picture_viewer
                     previousColor.g = (previousColor.g + dg) & 0xff;
                     previousColor.b = (previousColor.b + db) & 0xff;
 
-                    WriteColor(bytes, ref writeIndex, previousColor, channels);
+                    WriteColor(bytes, ref writeIndex, previousColor);
                     InsertIntoSeenColors(seenColors, previousColor);
 
                     continue;
@@ -195,9 +194,7 @@ namespace quick_picture_viewer
 
             BitmapData data=bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, bitmap.PixelFormat);
 
-            int b = data.Stride * bitmap.Height;
-
-            Marshal.Copy(bytes, 0, data.Scan0, b);
+            Marshal.Copy(bytes, 0, data.Scan0, pixelBufferSize);
 
             bitmap.UnlockBits(data);
 
